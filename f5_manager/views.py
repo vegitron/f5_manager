@@ -1,7 +1,7 @@
 # Create your views here.
 from django.shortcuts import render_to_response
 from django.conf import settings
-from f5_manager.models import VirtualHost
+from f5_manager.models import VirtualHost, iRule
 
 # F5 SOAP interface
 import pycontrol
@@ -52,9 +52,11 @@ def virtualhost(request, hostname, host_id):
     for rule in enabled_rules:
         rule = rule[0]
         if rule.rule_name in all_rules:
+            full_rule = all_rules[rule.rule_name]
             del all_rules[rule.rule_name]
             current_rules.append({
-                "rule_name": rule.rule_name
+                "rule_name": rule.rule_name,
+                "description": iRule().get_description_from_definition(full_rule.rule_definition),
             })
         else:
             # XXX - i'm not sure if there can be rules applied to a virtualhost that would be listed.
@@ -65,7 +67,8 @@ def virtualhost(request, hostname, host_id):
     for rule_name in all_rules:
         rule = all_rules[rule_name]
         other_rules.append({
-            "rule_name": rule.rule_name
+            "rule_name": rule.rule_name,
+            "description": iRule().get_description_from_definition(rule.rule_definition),
         })
 
     return render_to_response('virtualhost.html', { "current": current_rules, "admin_rules": admin_rules, "available": other_rules })

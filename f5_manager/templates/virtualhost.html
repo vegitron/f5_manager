@@ -4,7 +4,11 @@ This is a single host
 Currently enabled rules:
 <ul>
 {% for rule in current %}
-    <li> {{ rule.rule_name }} </li>
+    <li>
+        {{ rule.rule_name }}
+        <br />
+        {{ rule.description }}
+    </li>
 {% endfor %}
 </ul>
 {% endif %}
@@ -13,7 +17,11 @@ Currently enabled rules:
 Available rules:
 <ul>
 {% for rule in available %}
-    <li> {{ rule.rule_name }} </li>
+    <li>
+        {{ rule.rule_name }}
+        <br />
+        {{ rule.description }}
+    </li>
 {% endfor %}
 </ul>
 {% endif %}
@@ -22,7 +30,11 @@ Available rules:
 Other currently applied rules:
 <ul>
 {% for rule in admin %}
-    <li> {{ rule.rule_name }} </li>
+    <li>
+        {{ rule.rule_name }}
+        <br />
+        {{ rule.description }}
+    </li>
 {% endfor %}
 </ul>
 {% endif %}
