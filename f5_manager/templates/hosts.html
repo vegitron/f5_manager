@@ -1,0 +1,9 @@
+This is the hosts list
+
+<ul>
+{% for host in hosts %}
+    <li>
+    <a href="{{ host.url }}">{{ host.partition }} / {{ host.hostname }}</a>
+    </li>
+{% endfor %}
+</ul>
