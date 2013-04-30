@@ -1,1 +1,29 @@
 This is a single host
+
+{% if current %}
+Currently enabled rules:
+<ul>
+{% for rule in current %}
+    <li> {{ rule.rule_name }} </li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% if available %}
+Available rules:
+<ul>
+{% for rule in available %}
+    <li> {{ rule.rule_name }} </li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% if admin %}
+Other currently applied rules:
+<ul>
+{% for rule in admin %}
+    <li> {{ rule.rule_name }} </li>
+{% endfor %}
+</ul>
+{% endif %}
+
