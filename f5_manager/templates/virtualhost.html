@@ -7,10 +7,10 @@ Currently enabled rules:
     <li>
         {{ rule.rule_name }}
         <br />
-        <form action="{{ request.get_full_path }}" method="POST">
+        <form action="{% url f5_manager.views.disable_rule %}" method="POST">
             {% csrf_token %}
             <input type="hidden" name="rule_name" value="{{rule.rule_name}}" />
-            <input type="hidden" name="action" value="disable" />
+            <input type="hidden" name="host_id" value="{{ host_id }}" />
             <input type="submit" value="Disable Rule"/>
         </form>
 
@@ -29,10 +29,10 @@ Available rules:
     <li>
         {{ rule.rule_name }}
         <br />
-        <form action="{{ request.get_full_path }}" method="POST">
+        <form action="{% url f5_manager.views.enable_rule %}" method="POST">
             {% csrf_token %}
             <input type="hidden" name="rule_name" value="{{rule.rule_name}}" />
-            <input type="hidden" name="action" value="enable" />
+            <input type="hidden" name="host_id" value="{{ host_id }}" />
             <input type="submit" value="Enable Rule"/>
         </form>
 
