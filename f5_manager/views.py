@@ -1,5 +1,6 @@
 # Create your views here.
 from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.conf import settings
 from f5_manager.models import VirtualHost, iRule
 
@@ -21,11 +22,45 @@ def home(request):
     return render_to_response('hosts.html', data)
 
 def virtualhost(request, hostname, host_id):
+
     if not hasattr(settings, "F5_BIGIP_HOST"):
         raise Exception("Missing required configuration key: 'F5_BIGIP_HOST'")
 
     host = VirtualHost.objects.get(id=host_id)
 
+    if request.method == "GET":
+        return _display_virtual_host(request, host)
+
+    if request.method == "POST":
+        if request.POST["action"] == "enable":
+            _enable_rule_for_host(request.POST["rule_name"], host)
+
+        return _display_virtual_host(request, host)
+
+def _enable_rule_for_host(rule_name, host):
+
+    big_ip = pycontrol.BIGIP(
+        hostname = settings.F5_BIGIP_HOST,
+        username = host.admin_user,
+        password = host.admin_pass,
+        fromurl = True,
+        wsdls = ['LocalLB.Rule', 'LocalLB.VirtualServer']
+    )
+
+    rule_set = big_ip.LocalLB.VirtualServer.typefactory.create('LocalLB.VirtualServer.VirtualServerRule')
+    rule_set.rule_name = rule_name
+    rule_set.priority = 1 # XXX - make this come in, configurable
+
+    rule_seq = big_ip.LocalLB.VirtualServer.typefactory.create('LocalLB.VirtualServer.VirtualServerRuleSequence')
+
+    rule_seq.item = [rule_set]
+
+    print "Adding: ", big_ip.LocalLB.VirtualServer.add_rule(["/%s/%s" % (host.partition, host.hostname)], [[rule_seq]])
+
+
+    print "Enabling ", rule_name, " for host: ", host.hostname
+
+def _display_virtual_host(request, host):
     big_ip = pycontrol.BIGIP(
         hostname = settings.F5_BIGIP_HOST,
         username = host.admin_user,
@@ -71,7 +106,6 @@ def virtualhost(request, hostname, host_id):
             "description": iRule().get_description_from_definition(rule.rule_definition),
         })
 
-    return render_to_response('virtualhost.html', { "current": current_rules, "admin_rules": admin_rules, "available": other_rules })
-
+    return render_to_response('virtualhost.html', { "current": current_rules, "admin_rules": admin_rules, "available": other_rules }, RequestContext(request))
 
 
