@@ -29,7 +29,7 @@ class iRule(models.Model):
         return outside_rule_view(definition)
 
     def _get_redirect_description(self, definition):
-        matches = re.match('^\s*when HTTP_REQUEST {\s*HTTP::respond 302\s*(.*?)\s*}\s*$', definition)
+        matches = re.match('^\s*when HTTP_REQUEST {\s*HTTP::respond 302 Location \s*(.*?)\s*}\s*$', definition)
 
         if matches == None:
             return None
