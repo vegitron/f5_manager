@@ -55,10 +55,7 @@ def _enable_rule_for_host(rule_name, host):
 
     rule_seq.item = [rule_set]
 
-    print "Adding: ", big_ip.LocalLB.VirtualServer.add_rule(["/%s/%s" % (host.partition, host.hostname)], [[rule_seq]])
-
-
-    print "Enabling ", rule_name, " for host: ", host.hostname
+    big_ip.LocalLB.VirtualServer.add_rule(["/%s/%s" % (host.partition, host.hostname)], [[rule_seq]])
 
 def _display_virtual_host(request, host):
     big_ip = pycontrol.BIGIP(
@@ -72,7 +69,7 @@ def _display_virtual_host(request, host):
     if host.partition:
         big_ip.Management.Partition.set_active_partition(host.partition)
 
-    enabled_rules = big_ip.LocalLB.VirtualServer.get_rule(["/%s/%s" % (host.partition, host.hostname)])
+    enabled_rules = big_ip.LocalLB.VirtualServer.get_rule(["/%s/%s" % (host.partition, host.hostname)])[0]
 
     rules = big_ip.LocalLB.Rule.query_all_rules()
 
@@ -84,8 +81,8 @@ def _display_virtual_host(request, host):
     other_rules = []
     admin_rules = []
 
-    for rule in enabled_rules:
-        rule = rule[0]
+    for rulex in enabled_rules:
+        rule = rulex
         if rule.rule_name in all_rules:
             full_rule = all_rules[rule.rule_name]
             del all_rules[rule.rule_name]
