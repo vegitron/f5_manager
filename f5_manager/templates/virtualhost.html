@@ -7,6 +7,15 @@ Currently enabled rules:
     <li>
         {{ rule.rule_name }}
         <br />
+        <form action="{{ request.get_full_path }}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="rule_name" value="{{rule.rule_name}}" />
+            <input type="hidden" name="action" value="disable" />
+            <input type="submit" value="Disable Rule"/>
+        </form>
+
+
+        <br />
         {{ rule.description }}
     </li>
 {% endfor %}

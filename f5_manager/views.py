@@ -35,7 +35,31 @@ def virtualhost(request, hostname, host_id):
         if request.POST["action"] == "enable":
             _enable_rule_for_host(request.POST["rule_name"], host)
 
+        if request.POST["action"] == "disable":
+            _disable_rule_for_host(request.POST["rule_name"], host)
+
         return _display_virtual_host(request, host)
+
+def _disable_rule_for_host(rule_name, host):
+
+    big_ip = pycontrol.BIGIP(
+        hostname = settings.F5_BIGIP_HOST,
+        username = host.admin_user,
+        password = host.admin_pass,
+        fromurl = True,
+        wsdls = ['LocalLB.Rule', 'LocalLB.VirtualServer']
+    )
+
+    rule_set = big_ip.LocalLB.VirtualServer.typefactory.create('LocalLB.VirtualServer.VirtualServerRule')
+    rule_set.rule_name = rule_name
+    rule_set.priority = 1
+
+    rule_seq = big_ip.LocalLB.VirtualServer.typefactory.create('LocalLB.VirtualServer.VirtualServerRuleSequence')
+
+    rule_seq.item = [rule_set]
+
+    big_ip.LocalLB.VirtualServer.remove_rule(["/%s/%s" % (host.partition, host.hostname)], [[rule_seq]])
+
 
 def _enable_rule_for_host(rule_name, host):
 
