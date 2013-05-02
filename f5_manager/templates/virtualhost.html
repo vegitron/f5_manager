@@ -1,46 +1,53 @@
-This is a single host
+{% extends "base.html" %}
 
+{%block content %}
+<h2>Host Rules</h2>
 {% if current %}
-Currently enabled rules:
-<ul>
+<h3>Currently enabled rules</h3>
 {% for rule in current %}
-    <li>
-        {{ rule.rule_name }}
-        <br />
-        <form action="{% url f5_manager.views.disable_rule %}" method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="rule_name" value="{{rule.rule_name}}" />
-            <input type="hidden" name="host_id" value="{{ host_id }}" />
-            <input type="submit" value="Disable Rule"/>
-        </form>
-
-
-        <br />
-        {{ rule.description }}
-    </li>
+    <div class="host_irule">
+        <div class="rule_priority">{{rule.priority}}</div>
+        <div class="rule_data">
+            <div class="rule_description">
+            {{ rule.description }}
+            </div>
+            <div class="rule_metadata">
+                <span class="rule_name">Rule name: {{ rule.rule_name }}</span>
+                <form class="disable_rule" action="{% url f5_manager.views.disable_rule %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="rule_name" value="{{rule.rule_name}}" />
+                    <input type="hidden" name="host_id" value="{{ host_id }}" />
+                    <input type="submit" value="Disable Rule"/>
+                </form>
+            </div>
+        </div>
+        <br style="clear: both"/>
+    </div>
 {% endfor %}
-</ul>
 {% endif %}
 
 {% if available %}
-Available rules:
-<ul>
+<h3>Available rules</h3>
 {% for rule in available %}
-    <li>
-        {{ rule.rule_name }}
-        <br />
-        <form action="{% url f5_manager.views.enable_rule %}" method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="rule_name" value="{{rule.rule_name}}" />
-            <input type="hidden" name="host_id" value="{{ host_id }}" />
-            <input type="submit" value="Enable Rule"/>
-        </form>
-
-        <br />
-        {{ rule.description }}
-    </li>
+    <div class="available_irule">
+        <div class="rule_priority">&nbsp;</div>
+        <div class="rule_data">
+            <div class="rule_description">
+            {{ rule.description }}
+            </div>
+            <div class="rule_metadata">
+                <span class="rule_name">Rule name: {{ rule.rule_name }}</span>
+                <form class="enable_rule" action="{% url f5_manager.views.enable_rule %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="rule_name" value="{{rule.rule_name}}" />
+                    <input type="hidden" name="host_id" value="{{ host_id }}" />
+                    <input type="submit" value="Enable Rule"/>
+                </form>
+            </div>
+        </div>
+        <br style="clear: both"/>
+    </div>
 {% endfor %}
-</ul>
 {% endif %}
 
 {% if admin %}
@@ -56,3 +63,4 @@ Other currently applied rules:
 </ul>
 {% endif %}
 
+{% endblock %}

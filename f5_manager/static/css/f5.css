@@ -1,0 +1,18 @@
+.host_irule {
+ border: 1px solid #444; background-color: #eee;   margin: 10px;
+}
+
+.rule_priority {
+    float: left;
+    width: 20px;
+    font-size: 20px;
+    text-align: center;
+}
+
+.rule_name { float: left; color: #777;}
+.disable_rule { float: right; }
+
+.rule_data {float: left; }
+
+.available_irule { border: 1px solid #444; background-color: #eee; margin: 10px;}
+

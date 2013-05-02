@@ -1,3 +1,5 @@
 suds
 Django==1.4
 django-fields
+django-compressor
+BeautifulSoup

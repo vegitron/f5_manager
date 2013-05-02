@@ -1,5 +1,8 @@
-This is the hosts list
+{% extends "base.html" %}
 
+{%block content %}
+
+<h2>Managed virtual hosts:</h2>
 <ul>
 {% for host in hosts %}
     <li>
@@ -7,3 +10,4 @@ This is the hosts list
     </li>
 {% endfor %}
 </ul>
+{% endblock %}

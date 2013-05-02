@@ -21,7 +21,7 @@ def home(request):
             "url": host.view_url(),
         })
 
-    return render_to_response('hosts.html', data)
+    return render_to_response('hosts.html', data, RequestContext(request))
 
 def virtualhost(request, hostname, host_id):
 
@@ -59,6 +59,7 @@ def virtualhost(request, hostname, host_id):
             del all_rules[rule.rule_name]
             current_rules.append({
                 "rule_name": rule.rule_name,
+                "priority": rule.priority,
                 "description": iRule().get_description_from_definition(full_rule.rule_definition),
             })
         else:

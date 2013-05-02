@@ -1,0 +1,67 @@
+/* Less Mixins */
+
+.rounded-corners (@radius: 2px) {
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+  -ms-border-radius: @radius;
+  -o-border-radius: @radius;
+  border-radius: @radius;
+}
+
+.drop-shadow {
+    -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+
+/* Bootstrap Ovrrides */
+
+form { margin: 0; }
+
+.btn { .rounded-corners; }
+
+input[type="text"], input[type="password"], textarea { width: 93%; }
+
+
+/* Main Styles */
+
+.header { background: #955; height: 60px; line-height: 60px;
+
+    .header-inner {
+        .logo { color: #fff; margin: 0; display: inline-block; font-size: 30px; margin-left: 15px;
+         a { text-decoration: none; color: #ddd; }
+
+         }
+         .action { display: inline-block; margin-right: 15px; }
+    }
+
+}
+
+.content {
+
+    overflow: scroll;
+    -webkit-overflow-scrolling: touch;
+
+
+    margin: 0px auto;
+
+    .login {
+        .login-inner {
+            padding: 20px;
+        }
+    }
+
+
+    .services { margin: 15px;
+        ul { margin: 0; padding: 0; }
+        li { background-color: #f3f3f3; margin-bottom: 20px; list-style: none; padding: 10px; .drop-shadow; .rounded-corners;  }
+    }
+
+    .services-create-edit, .services-detail { margin: 15px;
+        background-color: #f3f3f3; .drop-shadow; .rounded-corners;
+
+        .services-content { padding: 15px; }
+    }
+
+}
