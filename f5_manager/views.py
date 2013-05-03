@@ -76,7 +76,17 @@ def disable_rule(request):
 
 def enable_rule(request):
     host = VirtualHost.objects.get(id=request.POST["host_id"])
-    BigIP().enable_rule(rule_name, 1)
+
+
+    new_priority = None
+    if request.POST["priority"]:
+        new_priority = request.POST["priority"]
+    else:
+        current_max = BigIP(host).get_highest_rule_priority()
+        reduced = int(current_max / 10)
+        new_priority = (reduced + 1) * 10
+
+    BigIP(host).enable_rule(request.POST["rule_name"], new_priority)
 
     return HttpResponseRedirect(host.view_url())
 

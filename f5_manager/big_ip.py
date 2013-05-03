@@ -20,6 +20,15 @@ class BigIP(object):
 
         return enabled_rules
 
+    def get_highest_rule_priority(self):
+        rules = self.get_enabled_rules()
+        max_priority = 0
+        for rule in rules:
+            if rule.priority > max_priority:
+                max_priority = rule.priority
+
+        return max_priority
+
     def get_all_rules(self):
         big_ip = pycontrol.BIGIP(
             hostname = settings.F5_BIGIP_HOST,
@@ -66,7 +75,7 @@ class BigIP(object):
 
 
         rule_set = big_ip.LocalLB.VirtualServer.typefactory.create('LocalLB.VirtualServer.VirtualServerRule')
-        rule_set.rule_name = request.POST["rule_name"]
+        rule_set.rule_name = rule_name
         rule_set.priority = priority
 
         rule_seq = big_ip.LocalLB.VirtualServer.typefactory.create('LocalLB.VirtualServer.VirtualServerRuleSequence')
