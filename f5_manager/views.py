@@ -41,6 +41,7 @@ def virtualhost(request, hostname, host_id):
     other_rules = []
     admin_rules = []
 
+    enabled_rules = sorted(enabled_rules, key=lambda rule: rule.priority)
     for rulex in enabled_rules:
         rule = rulex
         if rule.rule_name in all_rules:
