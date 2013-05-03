@@ -46,10 +46,11 @@ def virtualhost(request, hostname, host_id):
         if rule.rule_name in all_rules:
             full_rule = all_rules[rule.rule_name]
             del all_rules[rule.rule_name]
+            description, priority = iRule().get_description_from_definition(full_rule.rule_definition)
             current_rules.append({
                 "rule_name": rule.rule_name,
                 "priority": rule.priority,
-                "description": iRule().get_description_from_definition(full_rule.rule_definition),
+                "description": description,
             })
         else:
             # XXX - i'm not sure if there can be rules applied to a virtualhost that would be listed.
@@ -59,10 +60,15 @@ def virtualhost(request, hostname, host_id):
 
     for rule_name in all_rules:
         rule = all_rules[rule_name]
-        other_rules.append({
+        description, priority = iRule().get_description_from_definition(rule.rule_definition)
+
+        data = {
             "rule_name": rule.rule_name,
-            "description": iRule().get_description_from_definition(rule.rule_definition),
-        })
+            "description": description,
+        }
+        if priority != None:
+            data["priority"] = priority
+        other_rules.append(data)
 
     return render_to_response('virtualhost.html', { "current": current_rules, "admin_rules": admin_rules, "available": other_rules, "host_id": host.id }, RequestContext(request))
 
@@ -79,7 +85,7 @@ def enable_rule(request):
 
 
     new_priority = None
-    if request.POST["priority"]:
+    if "priority" in request.POST:
         new_priority = request.POST["priority"]
     else:
         current_max = BigIP(host).get_highest_rule_priority()

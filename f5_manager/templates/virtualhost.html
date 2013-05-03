@@ -39,6 +39,9 @@
                 <span class="rule_name">Rule name: {{ rule.rule_name }}</span>
                 <form class="enable_rule" action="{% url f5_manager.views.enable_rule %}" method="POST">
                     {% csrf_token %}
+                    {% if rule.priority != None %}
+                    <input type="hidden" name="priority" value="{{rule.priority}}" />
+                    {% endif %}
                     <input type="hidden" name="rule_name" value="{{rule.rule_name}}" />
                     <input type="hidden" name="host_id" value="{{ host_id }}" />
                     <input type="submit" value="Enable Rule"/>
