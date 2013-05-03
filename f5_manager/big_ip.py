@@ -98,6 +98,7 @@ class BigIP(object):
         )
 
         members = big_ip.LocalLB.Pool.get_member_v2([pool_name])
+        return members[0]
 
 
     def get_pools(self):

@@ -47,7 +47,7 @@ class iRule(models.Model):
         if matches == None:
             return None, None
 
-        return pool_mapping_view(matches.group(1), matches.group(2), matches.group(3)), None
+        return pool_mapping_view(host, matches.group(1), matches.group(2), matches.group(3)), None
 
 
     def _get_client_cert_description(self, host, definition):

@@ -1,1 +1,7 @@
-<span class="pool_mapping_rule">Send all requests that {{ action }} {{ url_match }} to pool named: {{ pool_name }}.</span>
+<div class="pool_mapping_rule">Send all requests that {{ action }} {{ url_match }} to pool hosts:
+<ul>
+    {% for host in hosts %}
+    <li>{{ host.address }}:{{ host.port }}</li>
+    {% endfor %}
+</ul>
+Pool named: {{ pool_name }}.</div>
