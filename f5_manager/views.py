@@ -5,9 +5,7 @@ from django.template import RequestContext
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from f5_manager.models import VirtualHost, iRule
-
-# F5 SOAP interface
-import pycontrol
+from f5_manager.big_ip import BigIP
 
 def home(request):
     data = {}
@@ -29,20 +27,11 @@ def virtualhost(request, hostname, host_id):
         raise Exception("Missing required configuration key: 'F5_BIGIP_HOST'")
 
     host = VirtualHost.objects.get(id=host_id)
-    big_ip = pycontrol.BIGIP(
-        hostname = settings.F5_BIGIP_HOST,
-        username = host.admin_user,
-        password = host.admin_pass,
-        fromurl = True,
-        wsdls = ['LocalLB.Rule', 'LocalLB.VirtualServer', 'Management.Partition']
-    )
+    big_ip = BigIP(host)
 
-    if host.partition:
-        big_ip.Management.Partition.set_active_partition(host.partition)
+    enabled_rules = big_ip.get_enabled_rules()
 
-    enabled_rules = big_ip.LocalLB.VirtualServer.get_rule(["/%s/%s" % (host.partition, host.hostname)])[0]
-
-    rules = big_ip.LocalLB.Rule.query_all_rules()
+    rules = big_ip.get_all_rules()
 
     all_rules = {}
     for rule in rules:
@@ -78,48 +67,16 @@ def virtualhost(request, hostname, host_id):
     return render_to_response('virtualhost.html', { "current": current_rules, "admin_rules": admin_rules, "available": other_rules, "host_id": host.id }, RequestContext(request))
 
 
-
 def disable_rule(request):
     host = VirtualHost.objects.get(id=request.POST["host_id"])
-    big_ip = pycontrol.BIGIP(
-        hostname = settings.F5_BIGIP_HOST,
-        username = host.admin_user,
-        password = host.admin_pass,
-        fromurl = True,
-        wsdls = ['LocalLB.Rule', 'LocalLB.VirtualServer']
-    )
 
-    rule_set = big_ip.LocalLB.VirtualServer.typefactory.create('LocalLB.VirtualServer.VirtualServerRule')
-    rule_set.rule_name = request.POST["rule_name"]
-    rule_set.priority = 1
-
-    rule_seq = big_ip.LocalLB.VirtualServer.typefactory.create('LocalLB.VirtualServer.VirtualServerRuleSequence')
-
-    rule_seq.item = [rule_set]
-
-    big_ip.LocalLB.VirtualServer.remove_rule(["/%s/%s" % (host.partition, host.hostname)], [[rule_seq]])
+    BigIP(host).disable_rule( request.POST["rule_name"] )
 
     return HttpResponseRedirect(host.view_url())
 
 def enable_rule(request):
     host = VirtualHost.objects.get(id=request.POST["host_id"])
-    big_ip = pycontrol.BIGIP(
-        hostname = settings.F5_BIGIP_HOST,
-        username = host.admin_user,
-        password = host.admin_pass,
-        fromurl = True,
-        wsdls = ['LocalLB.Rule', 'LocalLB.VirtualServer']
-    )
-
-    rule_set = big_ip.LocalLB.VirtualServer.typefactory.create('LocalLB.VirtualServer.VirtualServerRule')
-    rule_set.rule_name = request.POST["rule_name"]
-    rule_set.priority = 1 # XXX - make this come in, configurable
-
-    rule_seq = big_ip.LocalLB.VirtualServer.typefactory.create('LocalLB.VirtualServer.VirtualServerRuleSequence')
-
-    rule_seq.item = [rule_set]
-
-    big_ip.LocalLB.VirtualServer.add_rule(["/%s/%s" % (host.partition, host.hostname)], [[rule_seq]])
+    BigIP().enable_rule(rule_name, 1)
 
     return HttpResponseRedirect(host.view_url())
 
