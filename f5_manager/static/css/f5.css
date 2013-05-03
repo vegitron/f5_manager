@@ -16,5 +16,10 @@
 
 .available_irule { border: 1px solid #444; background-color: #eee; margin: 10px;}
 
+.new_url_rule_type { border: 1px solid #444; background-color: #eee; margin: 10px; }
+
 .f5_virtual_server_name { color: #aaa; }
 
+label { display: inline }
+
+.required { color: red; }

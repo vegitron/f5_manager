@@ -40,5 +40,9 @@
         {% block content %}{% endblock %}
         </div>
 
+        {% compress js %}
+            <script src="{{STATIC_URL}}js/jquery-1.9.1.js"></script>
+            <script src="{{STATIC_URL}}js/f5.js"></script>
+        {% endcompress %}
     </body>
 </html>

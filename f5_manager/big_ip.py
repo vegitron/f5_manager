@@ -1,5 +1,7 @@
 import pycontrol
 from django.conf import settings
+import re
+import time
 
 class BigIP(object):
     def __init__(self, host):
@@ -84,4 +86,135 @@ class BigIP(object):
 
         big_ip.LocalLB.VirtualServer.add_rule(["/%s/%s" % (host.partition, host.hostname)], [[rule_seq]])
 
+
+    def get_hosts_for_pool(self, pool_name):
+        host = self._host
+        big_ip = pycontrol.BIGIP(
+            hostname = settings.F5_BIGIP_HOST,
+            username = host.admin_user,
+            password = host.admin_pass,
+            fromurl = True,
+            wsdls = ['LocalLB.Pool']
+        )
+
+        members = big_ip.LocalLB.Pool.get_member_v2([pool_name])
+
+
+    def get_pools(self):
+        big_ip = pycontrol.BIGIP(
+            hostname = settings.F5_BIGIP_HOST,
+            username = self._host.admin_user,
+            password = self._host.admin_pass,
+            fromurl = True,
+            wsdls = ['LocalLB.Pool', 'Management.Partition']
+        )
+        if self._host.partition:
+            big_ip.Management.Partition.set_active_partition(self._host.partition)
+
+        pool_names = big_ip.LocalLB.Pool.get_list()
+        members = big_ip.LocalLB.Pool.get_member_v2(pool_names)
+
+        return_list = []
+        for index in range(0, len(pool_names)):
+            return_list.append({
+                "name": pool_names[index],
+                "members": members[index],
+            })
+
+        return return_list
+
+    def get_hosts(self):
+        big_ip = pycontrol.BIGIP(
+            hostname = settings.F5_BIGIP_HOST,
+            username = self._host.admin_user,
+            password = self._host.admin_pass,
+            fromurl = True,
+            wsdls = ['LocalLB.NodeAddressV2', 'Management.Partition']
+        )
+        if self._host.partition:
+            big_ip.Management.Partition.set_active_partition(self._host.partition)
+
+
+        host_strings = big_ip.LocalLB.NodeAddressV2.get_list()
+        host_addresses = big_ip.LocalLB.NodeAddressV2.get_address(host_strings)
+
+        return_list = []
+
+        for index in range(0, len(host_strings)):
+            return_list.append({
+                "name": host_strings[index],
+                "ip": host_addresses[index],
+            })
+
+        return return_list
+
+
+    def create_pool_for_hosts(self, hosts):
+        host = self._host
+        big_ip = pycontrol.BIGIP(
+            hostname = settings.F5_BIGIP_HOST,
+            username = host.admin_user,
+            password = host.admin_pass,
+            fromurl = True,
+            wsdls = ['LocalLB.Pool', 'Management.Partition']
+        )
+
+        if host.partition:
+            big_ip.Management.Partition.set_active_partition(host.partition)
+
+        lbmeth = big_ip.LocalLB.Pool.typefactory.create('LocalLB.LBMethod')
+        mem_sequence = big_ip.LocalLB.Pool.typefactory.create('Common.IPPortDefinitionSequence')
+
+        items = []
+        for host in hosts:
+            member = big_ip.LocalLB.Pool.typefactory.create('Common.AddressPort')
+            member.address = host
+            member.port = 443 # XXX - should we handle non-https requests?
+
+            items.append(member)
+
+        mem_sequence.items = items
+
+        pool_name = "pl_f5manager_%s_%s" % (self._clean_name("-".join(hosts)), time.time())
+
+        big_ip.LocalLB.Pool.create_v2(
+            pool_names = ["%s" % (pool_name)],
+            lb_methods = [lbmeth.LB_METHOD_ROUND_ROBIN],
+            members = [mem_sequence]
+        )
+
+        return pool_name
+
+    def create_url_map_to_pool(self, match_type, url_match, pool_name):
+        host = self._host
+        big_ip = pycontrol.BIGIP(
+            hostname = settings.F5_BIGIP_HOST,
+            username = host.admin_user,
+            password = host.admin_pass,
+            fromurl = True,
+            wsdls = ['LocalLB.Rule', 'Management.Partition']
+        )
+
+        if host.partition:
+            big_ip.Management.Partition.set_active_partition(host.partition)
+
+        irule = """
+            when HTTP_REQUEST {
+                if { [HTTP::uri] %s "%s" } {
+                    pool %s
+                }
+            }
+            """ % (match_type, url_match, pool_name)
+
+        r_def = big_ip.LocalLB.Rule.typefactory.create('LocalLB.Rule.RuleDefinition')
+
+        long_name = "ir_f5manager_%s_%s_%s" % (self._clean_name(host.hostname), self._clean_name(url_match), self._clean_name(pool_name))
+
+        r_def.rule_name = long_name
+        r_def.rule_definition = irule
+
+        big_ip.LocalLB.Rule.create(rules = [r_def])
+
+    def _clean_name(self, name):
+        return re.sub('[^\w]+', '-', name)
 

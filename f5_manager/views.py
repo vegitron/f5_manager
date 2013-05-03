@@ -48,7 +48,7 @@ def virtualhost(request, hostname, host_id):
         if rule.rule_name in all_rules:
             full_rule = all_rules[rule.rule_name]
             del all_rules[rule.rule_name]
-            description, priority = iRule().get_description_from_definition(full_rule.rule_definition)
+            description, priority = iRule().get_description_from_definition(host, full_rule.rule_definition)
             current_rules.append({
                 "rule_name": rule.rule_name,
                 "priority": rule.priority,
@@ -62,7 +62,7 @@ def virtualhost(request, hostname, host_id):
 
     for rule_name in all_rules:
         rule = all_rules[rule_name]
-        description, priority = iRule().get_description_from_definition(rule.rule_definition)
+        description, priority = iRule().get_description_from_definition(host, rule.rule_definition)
 
         data = {
             "rule_name": rule.rule_name,
@@ -94,7 +94,6 @@ def disable_rule(request):
 def enable_rule(request):
     host = VirtualHost.objects.get(id=request.POST["host_id"])
 
-
     new_priority = None
     if "priority" in request.POST:
         new_priority = request.POST["priority"]
@@ -108,3 +107,33 @@ def enable_rule(request):
     return HttpResponseRedirect(host.view_url())
 
 
+def create_mapping(request, host_id):
+    host = VirtualHost.objects.get(id=host_id)
+
+    if request.method == "POST":
+        url_match = request.POST["url_match"]
+        pool_type = request.POST["pool_type"]
+
+        pool = None
+        if pool_type == "existing":
+            pool = request.POST["server_pool"]
+
+        else:
+            hosts = request.POST.getlist("server_pool_member")
+            pool = BigIP(host).create_pool_for_hosts(hosts)
+
+        BigIP(host).create_url_map_to_pool("starts_with", url_match, pool)
+        return HttpResponseRedirect(host.view_url())
+
+
+    pools = BigIP(host).get_pools()
+    hosts = BigIP(host).get_hosts()
+
+    data = {
+        "host_id": host.id,
+        "host_name": host.display_name,
+        "existing_hosts": sorted(hosts, key=lambda host: host["name"]),
+        "existing_pools": sorted(pools, key=lambda pool: pool["name"]),
+    }
+
+    return render_to_response('create_mapping.html', data, RequestContext(request))

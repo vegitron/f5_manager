@@ -3,6 +3,7 @@ from django.conf import settings
 from django_fields.fields import EncryptedCharField
 from django.core.urlresolvers import reverse
 from f5_manager.rule_views import *
+from f5_manager.big_ip import BigIP
 import re
 
 # Create your models here.
@@ -22,16 +23,16 @@ class VirtualHost(models.Model):
         return reverse('f5_manager.views.virtualhost', args=(url_hostname, self.id))
 
 class iRule(models.Model):
-    def get_description_from_definition(self, definition):
+    def get_description_from_definition(self, host, definition):
 
         for method in (self._get_redirect_description, self._get_pool_mapping_description, self._get_client_cert_description):
-            desc, priority = method(definition)
+            desc, priority = method(host, definition)
             if desc:
                 return desc, priority
 
         return outside_rule_view(definition), None
 
-    def _get_redirect_description(self, definition):
+    def _get_redirect_description(self, host, definition):
         matches = re.match('^\s*when HTTP_REQUEST {\s*HTTP::respond 302 Location \s*(.*?)\s*}\s*$', definition)
 
         if matches == None:
@@ -40,7 +41,7 @@ class iRule(models.Model):
         # Make sure offline messages always have the top priority
         return redirect_view(matches.group(1)), 0
 
-    def _get_pool_mapping_description(self, definition):
+    def _get_pool_mapping_description(self, host, definition):
         matches = re.match('^\s*when HTTP_REQUEST {\s*if { \[HTTP::uri\] (.*?) "(.*?)" } {\s*pool (.*?)\s*}\s*}\s*$', definition)
 
         if matches == None:
@@ -49,8 +50,7 @@ class iRule(models.Model):
         return pool_mapping_view(matches.group(1), matches.group(2), matches.group(3)), None
 
 
-
-    def _get_client_cert_description(self, definition):
+    def _get_client_cert_description(self, host, definition):
         matches = re.match('^\s*when CLIENT_ACCEPTED {\s*set collecting 0\s*set renegtried 0\s*}\s*when HTTP_REQUEST {\s*if { \$renegtried == 0\s*and \[SSL::cert count\] == 0\s*and \(\[HTTP::uri\] (.*?) "(.*?)"\) } {\s*HTTP::collect\s*set collecting 1\s*SSL::cert mode request\s*SSL::renegotiate\s*}\s*}\s*when CLIENTSSL_HANDSHAKE {\s*if { \$collecting == 1 } {\s*set renegtried 1\s*HTTP::release\s*}\s*}\s*when HTTP_REQUEST_SEND {\s*clientside {\s*HTTP::header remove "(.*?)"\s*if { \[SSL::cert count\] > 0 } {\s*HTTP::header insert "(.*?)" \[X509::subject \[SSL::cert 0\]\]\s*}\s*}\s*}\s*$', definition)
 
         if matches == None:

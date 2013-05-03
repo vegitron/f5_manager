@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{%block content %}
+<h2>New URL To Server Pool Mapping - {{ host_name }}</h2>
+
+<form action="{% url f5_manager.views.create_mapping host_id %}" method="POST" onsubmit="return validate_url_mapping_form()">
+{% csrf_token %}
+
+<div>URL starts_with <input type="text" name="url_match" /> <span id="required_url_match" style="display:none" class="required">Required</span>
+</div>
+
+Send requests to servers:
+
+<div class="new_url_rule_type">
+    <div style="float: left; width: 20px;">
+        <input type="radio" name="pool_type" value="existing" checked="checked" id="existing_pool_radio"/>
+    </div>
+    <div style="float: left;">
+        <label for="existing_pool_radio">An existing server pool</label> <span id="required_existing_pool" style="display:none" class="required">Required</span>
+        {% for pool in existing_pools %}
+        <br /><input type="radio" name="server_pool" value="{{ pool.name }}" id="existing_pool_{{ pool.name }}"/> <label for="existing_pool_{{ pool.name }}">{{ pool.name }}</label>
+            <ul>
+                {% for member in pool.members %}
+                <li>{{ member.address }}: {{ member.port }}</li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </div>
+    <br clear="both"/>
+</div>
+
+<div class="new_url_rule_type">
+    <div style="float: left; width: 20px;">
+        <input type="radio" name="pool_type" value="new_by_hosts" id="new_server_pool_radio" />
+    </div>
+    <div style="float: left;">
+        <label for="new_server_pool_radio">A new server pool, with these hosts:</label> <span id="required_existing_hosts" style="display:none" class="required">Required</span>
+        {% for host in existing_hosts %}
+        <br /><input type="checkbox" name="server_pool_member" value="{{ host.name }}" id="existing_server_{{ host.name }}"/> <label for="existing_server_{{ host.name }}">{{ host.name }} ({{ host.ip }})</label>
+        {% endfor %}
+    </div>
+    <br clear="both"/>
+</div>
+
+<input type="submit" value="Create Mapping Rule" />
+
+{% endblock %}
