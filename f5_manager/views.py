@@ -14,6 +14,7 @@ def home(request):
 
     for host in hosts:
         data["hosts"].append({
+            "display_name": host.display_name,
             "partition": host.partition,
             "hostname": host.hostname,
             "url": host.view_url(),
@@ -71,7 +72,16 @@ def virtualhost(request, hostname, host_id):
             data["priority"] = priority
         other_rules.append(data)
 
-    return render_to_response('virtualhost.html', { "current": current_rules, "admin_rules": admin_rules, "available": other_rules, "host_id": host.id }, RequestContext(request))
+    data = {
+        "current": current_rules,
+        "admin_rules": admin_rules,
+        "available": other_rules,
+        "host_id": host.id,
+        "host_name": host.display_name,
+    }
+
+
+    return render_to_response('virtualhost.html', data, RequestContext(request))
 
 
 def disable_rule(request):

@@ -12,9 +12,10 @@ class VirtualHost(models.Model):
     admin_user = models.CharField(max_length=150)
     admin_pass = EncryptedCharField(max_length=150)
     partition = models.CharField(max_length=150)
+    display_name = models.CharField(max_length=150)
 
     def view_url(self):
-        url_hostname = self.hostname
+        url_hostname = self.display_name
         url_hostname = re.sub(r'[^\w]+', '-', url_hostname)
         url_hostname = re.sub(r'-*$', '', url_hostname)
 

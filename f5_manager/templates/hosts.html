@@ -6,7 +6,7 @@
 <ul>
 {% for host in hosts %}
     <li>
-    <a href="{{ host.url }}">{{ host.partition }} / {{ host.hostname }}</a>
+    <a href="{{ host.url }}">{{ host.display_name }}</a> <span class="f5_virtual_server_name">({{ host.partition }} / {{ host.hostname }})</span>
     </li>
 {% endfor %}
 </ul>
