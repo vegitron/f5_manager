@@ -246,6 +246,66 @@ class BigIP(object):
         big_ip.LocalLB.Rule.create(rules = [r_def])
 
 
+    def create_client_cert_header_rule(self, path, header):
+        host = self._host
+        big_ip = pycontrol.BIGIP(
+            hostname = settings.F5_BIGIP_HOST,
+            username = host.admin_user,
+            password = host.admin_pass,
+            fromurl = True,
+            wsdls = ['LocalLB.Rule', 'Management.Partition']
+        )
+
+        if host.partition:
+            big_ip.Management.Partition.set_active_partition(host.partition)
+
+        irule = """
+        when CLIENT_ACCEPTED {
+            set collecting 0
+            set renegtried 0
+        }
+
+        when HTTP_REQUEST {
+            if { $renegtried == 0
+                 and [SSL::cert count] == 0
+                 and ([HTTP::uri] starts_with "%s") } {
+
+            HTTP::collect
+                set collecting 1
+                SSL::cert mode request
+                SSL::renegotiate
+            }
+        }
+
+        when CLIENTSSL_HANDSHAKE {
+            if { $collecting == 1 } {
+                set renegtried 1
+                HTTP::release
+            }
+        }
+
+        when HTTP_REQUEST_SEND {
+            clientside {
+                HTTP::header remove "%s"
+
+                if { [SSL::cert count] > 0 } {
+                    HTTP::header insert "%s" [X509::subject [SSL::cert 0]]
+                }
+            }
+        }
+        """ % (path, header, header)
+
+        r_def = big_ip.LocalLB.Rule.typefactory.create('LocalLB.Rule.RuleDefinition')
+
+        long_name = "ir_f5manager_cert_%s_%s" % (self._clean_name(path), self._clean_name(header))
+
+        r_def.rule_name = long_name
+        r_def.rule_definition = irule
+
+        big_ip.LocalLB.Rule.create(rules = [r_def])
+
+
+
     def _clean_name(self, name):
         return re.sub('[^\w]+', '-', name)
 

@@ -69,7 +69,7 @@ Other currently applied rules:
 <div>
 <a href="{% url f5_manager.views.create_offline_rule host_id %}">Create new offline page</a> <br />
 <a href="{% url f5_manager.views.create_mapping host_id %}">Create new url -> server mapping</a> <br />
-<a href="">Create new client certificate requirement</a> <br />
+<a href="{% url f5_manager.views.create_client_cert_header_rule host_id %}">Create new client certificate requirement</a> <br />
 </div>
 
 {% endblock %}

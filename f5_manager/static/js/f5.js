@@ -32,4 +32,19 @@ function validate_offline_form() {
     return true;
 }
 
+function validate_cert_header_form() {
+    var is_valid = true;
+    $("#required_path").hide();
+    $("#required_header").hide();
 
+    if (!$("input[name='path']").val()) {
+        $("#required_path").show();
+        is_valid = false;
+    }
+    if (!$("input[name='header']").val()) {
+        $("#required_header").show();
+        is_valid = false;
+    }
+
+    return is_valid;
+}

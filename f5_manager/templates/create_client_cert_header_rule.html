@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{%block content %}
+<h2>New Client Cert Header Rule - {{ host_name }}</h2>
+
+<form action="{% url f5_manager.views.create_client_cert_header_rule host_id %}" method="POST" onsubmit="return validate_cert_header_form()">
+{% csrf_token %}
+
+<div>For Client Cert protected resources at this URL: <input type="text" name="path" /> <span id="required_path" style="display:none" class="required">Required</span>
+<br />
+Send the client cert's subject as this HTTP header: <input type="text" name="header" /> <span id="required_header" style="display:none" class="required">Required</span>
+
+</div>
+
+<input type="submit" value="Create Client Cert Header Rule" />
+
+{% endblock %}

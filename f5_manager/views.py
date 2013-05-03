@@ -147,3 +147,14 @@ def create_offline_rule(request, host_id):
         return HttpResponseRedirect(host.view_url())
 
     return render_to_response('create_offline_rule.html', {"host_id": host_id}, RequestContext(request))
+
+def create_client_cert_header_rule(request, host_id):
+    host = VirtualHost.objects.get(id=host_id)
+
+    if request.method == "POST":
+        path = request.POST["path"]
+        header = request.POST["header"]
+        BigIP(host).create_client_cert_header_rule(path, header)
+        return HttpResponseRedirect(host.view_url())
+
+    return render_to_response('create_client_cert_header_rule.html', {"host_id": host_id}, RequestContext(request))
