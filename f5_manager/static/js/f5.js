@@ -23,3 +23,13 @@ function validate_url_mapping_form() {
     }
     return valid;
 }
+
+function validate_offline_form() {
+    if (!$("input[name='offline_page']").val()) {
+        $("#required_url").show();
+        return false;
+    }
+    return true;
+}
+
+

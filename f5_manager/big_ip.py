@@ -216,6 +216,36 @@ class BigIP(object):
 
         big_ip.LocalLB.Rule.create(rules = [r_def])
 
+
+    def create_offline_rule(self, destination):
+        host = self._host
+        big_ip = pycontrol.BIGIP(
+            hostname = settings.F5_BIGIP_HOST,
+            username = host.admin_user,
+            password = host.admin_pass,
+            fromurl = True,
+            wsdls = ['LocalLB.Rule', 'Management.Partition']
+        )
+
+        if host.partition:
+            big_ip.Management.Partition.set_active_partition(host.partition)
+
+        irule = """
+            when HTTP_REQUEST {
+                HTTP::respond 302 Location %s
+            }
+            """ % (destination)
+
+        r_def = big_ip.LocalLB.Rule.typefactory.create('LocalLB.Rule.RuleDefinition')
+
+        long_name = "ir_f5manager_offline_%s" % (self._clean_name(destination))
+
+        r_def.rule_name = long_name
+        r_def.rule_definition = irule
+
+        big_ip.LocalLB.Rule.create(rules = [r_def])
+
+
     def _clean_name(self, name):
         return re.sub('[^\w]+', '-', name)
 

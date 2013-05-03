@@ -137,3 +137,13 @@ def create_mapping(request, host_id):
     }
 
     return render_to_response('create_mapping.html', data, RequestContext(request))
+
+def create_offline_rule(request, host_id):
+    host = VirtualHost.objects.get(id=host_id)
+
+    if request.method == "POST":
+        destination = request.POST["offline_page"]
+        BigIP(host).create_offline_rule(destination)
+        return HttpResponseRedirect(host.view_url())
+
+    return render_to_response('create_offline_rule.html', {"host_id": host_id}, RequestContext(request))
